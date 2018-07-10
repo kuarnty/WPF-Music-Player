@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 
 using Microsoft.Win32;
 using System.IO;
+using System.Timers;
 
 namespace MusicPlayer
 {
@@ -26,8 +27,10 @@ namespace MusicPlayer
         MediaPlayer CurrentMusic = new MediaPlayer();
         int CurrentMusicIndex;
         bool IsPlaying = false;
+        bool IsDragging = false;
         List<Music> MusicList = new List<Music>();
         Stack<Music> PlayLog = new Stack<Music>();
+        Timer timer = new Timer();
 
         public MainWindow()
         {
@@ -36,6 +39,9 @@ namespace MusicPlayer
             SongListView.ItemsSource = MusicList;
             CheckPlaylistExits();
             CurrentMusic.MediaEnded += delegate { PlayNextSong(); };
+            timer.Interval = 100;
+            timer.Elapsed += delegate { UpdateSongProgress(); };
+            timer.Start();
         }
 
         ~MainWindow()
@@ -81,6 +87,12 @@ namespace MusicPlayer
                 for (int i = 0; i < file.FileNames.Count(); i++)
                 {
                     MusicList.Add(new Music(file.FileNames[i]));
+                    MediaPlayer media = new MediaPlayer();
+                    media.Open(new Uri(file.FileNames[i]));
+                    if (media.NaturalDuration.HasTimeSpan)
+                    {
+                        MusicList.Last().length = (media.NaturalDuration.TimeSpan.Minutes * 60 + media.NaturalDuration.TimeSpan.Seconds).ToString();
+                    }
                 }
                 SongListView.Items.Refresh();
             }
@@ -100,6 +112,11 @@ namespace MusicPlayer
                 SongTitleLabel.Content = "Title";
                 SongListView.SelectedIndex = -1;
             }
+
+            if (CurrentMusic.NaturalDuration.HasTimeSpan)
+            {
+                SongLength.Content = CurrentMusic.NaturalDuration.TimeSpan.Minutes + " : " + CurrentMusic.NaturalDuration.TimeSpan.Seconds;
+            }
         }
         public void ChangeMusicTo(int index)
         {
@@ -110,6 +127,12 @@ namespace MusicPlayer
                 SongTitleLabel.Content = MusicList[index].title;
                 SongListView.SelectedIndex = CurrentMusicIndex;
             }
+
+            if (CurrentMusic.NaturalDuration.HasTimeSpan)
+            {
+                SongLength.Content = CurrentMusic.NaturalDuration.TimeSpan.Minutes + " : " + CurrentMusic.NaturalDuration.TimeSpan.Seconds;
+            }
+
         }
 
         public void PlaySong()
@@ -118,6 +141,7 @@ namespace MusicPlayer
             PlayPauseButton.Content = "||";
             IsPlaying = true;
             PlayLog.Push(MusicList[CurrentMusicIndex]);
+            CurrentMusic.Volume = VolumeSlider.Value;
         }
         public void PlaySong(bool isLogging)
         {
@@ -131,6 +155,7 @@ namespace MusicPlayer
                 CurrentMusic.Play();
                 PlayPauseButton.Content = "||";
                 IsPlaying = true;
+                CurrentMusic.Volume = VolumeSlider.Value;
             }
         }
 
@@ -185,9 +210,35 @@ namespace MusicPlayer
             }
         }
 
-        // Events of controll buttons
+        public void UpdateSongProgress()
+        {
+            Dispatcher.Invoke(new Action(delegate
+            {
+                if (!IsDragging)
+                {
+                    SongProgressLabel.Content = CurrentMusic.Position.Minutes + " : " + CurrentMusic.Position.Seconds;
+                }
+                else
+                {
+                    SongProgressLabel.Content = (int)(SongProgressSlider.Value) / 60 + " : " + (int)(SongProgressSlider.Value) % 60;
+                }
 
-        private void PlayPauseButton_Click(object sender, RoutedEventArgs e)
+                if (CurrentMusic.NaturalDuration.HasTimeSpan)
+                {
+                    SongProgressSlider.Maximum = CurrentMusic.NaturalDuration.TimeSpan.Minutes * 60 + CurrentMusic.NaturalDuration.TimeSpan.Seconds;
+                    if (!IsDragging)
+                    {
+                        SongLength.Content = CurrentMusic.NaturalDuration.TimeSpan.Minutes + " : " + CurrentMusic.NaturalDuration.TimeSpan.Seconds;
+                        SongProgressSlider.Value = CurrentMusic.Position.Minutes * 60 + CurrentMusic.Position.Seconds;
+                        MusicList[CurrentMusicIndex].length = CurrentMusic.Position.Minutes * 60 + CurrentMusic.Position.Seconds.ToString();
+                        SongListView.Items.Refresh();
+                    }
+                }
+            }));
+
+        }
+
+        public void PlayPauseButtonClicked()
         {
             if (CurrentMusic != null)
             {
@@ -204,7 +255,7 @@ namespace MusicPlayer
             }
         }
 
-        private void StopButton_Click(object sender, RoutedEventArgs e)
+        public void StopButtonClicked()
         {
             if (CurrentMusic != null)
             {
@@ -214,19 +265,57 @@ namespace MusicPlayer
             }
         }
 
-        private void NextButton_Click(object sender, RoutedEventArgs e)
+        public void NextButtonClicked()
         {
             PlayNextSong();
         }
 
-        private void PrevButton_Click(object sender, RoutedEventArgs e)
+        public void PrevButtonClicked()
         {
-            if (PlayLog.Count > 0)
+            if (PlayLog.Count > 1)
             {
                 PlayLog.Pop();
                 ChangeMusicTo(PlayLog.Peek());
                 PlaySong(false);
             }
+        }
+
+        public void MuteToggleButtonClicked()
+        {
+            if (MuteTogglButton.IsChecked == true)
+            {
+                CurrentMusic.IsMuted = true;
+            }
+            else
+            {
+                CurrentMusic.IsMuted = false;
+            }
+        }
+
+        public void VolumeSliderValueChanged()
+        {
+
+        }
+        // Events of controll buttons
+
+        private void PlayPauseButton_Click(object sender, RoutedEventArgs e)
+        {
+            PlayPauseButtonClicked();
+        }
+
+        private void StopButton_Click(object sender, RoutedEventArgs e)
+        {
+            StopButtonClicked();
+        }
+
+        private void NextButton_Click(object sender, RoutedEventArgs e)
+        {
+            NextButtonClicked();
+        }
+
+        private void PrevButton_Click(object sender, RoutedEventArgs e)
+        {
+            PrevButtonClicked();
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
@@ -257,13 +346,122 @@ namespace MusicPlayer
 
         private void MuteTogglButton_Click(object sender, RoutedEventArgs e)
         {
-            if (MuteTogglButton.IsChecked == true)
+            MuteToggleButtonClicked();
+        }
+
+        private void SongProgressSlider_DragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e)
+        {
+            IsDragging = true;
+        }
+
+        private void SongProgressSlider_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            if (CurrentMusic.NaturalDuration.HasTimeSpan)
             {
-                CurrentMusic.IsMuted = true;
+                CurrentMusic.Position = new TimeSpan((int)(SongProgressSlider.Value) / 3600, (int)(SongProgressSlider.Value) / 60, (int)(SongProgressSlider.Value) % 60);
             }
-            else
+            IsDragging = false;
+        }
+
+        private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (VolumeLabel != null)
             {
-                CurrentMusic.IsMuted = false;
+                VolumeLabel.Content = (int)(VolumeSlider.Value * 100) + "%";
+                CurrentMusic.Volume = VolumeSlider.Value;
+            }
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            Keyboard.ClearFocus();
+            switch (e.Key)
+            {
+                case Key.Space:
+                    PlayPauseButtonClicked();
+                    break;
+                case Key.MediaPlayPause:
+                    PlayPauseButtonClicked();
+                    break;
+                case Key.MediaNextTrack:
+                    NextButtonClicked();
+                    break;
+                case Key.MediaPreviousTrack:
+                    PrevButtonClicked();
+                    break;
+                case Key.VolumeMute:
+                    MuteToggleButtonClicked();
+                    break;
+                case Key.Delete:
+                    RemoveMusics();
+                    break;
+                case Key.Insert:
+                    AddMusicTroughDialog();
+                    break;
+                case Key.S:
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                        ShuffleToggleButton.IsChecked = !ShuffleToggleButton.IsChecked;
+                    break;
+                case Key.O:
+                    if (Keyboard.Modifiers == ModifierKeys.Control)
+                        AddMusicTroughDialog();
+                    break;
+                case Key.Up:
+                    if (CurrentMusic.Volume >= 0.95)
+                    {
+                        CurrentMusic.Volume = 1;
+                    }
+                    else
+                    {
+                        CurrentMusic.Volume += 0.05;
+                    }
+                    break;
+                case Key.Down:
+                    if (CurrentMusic.Volume <= 0.05)
+                    {
+                        CurrentMusic.Volume = 0;
+                    }
+                    else
+                    {
+                        CurrentMusic.Volume -= 0.05;
+                    }
+                    break;
+                case Key.Left:
+                    PrevButtonClicked();
+                    break;
+                case Key.Right:
+                    NextButtonClicked();
+                    break;
+                /*case Key.VolumeUp:
+                    if (VolumeLabel != null)
+                    {
+                        if (CurrentMusic.Volume >= 0.95)
+                        {
+                            CurrentMusic.Volume = 1;
+                        }
+                        else
+                        {
+                            CurrentMusic.Volume += 0.05;
+                        }
+                        VolumeSlider.Value = CurrentMusic.Volume;
+                    }
+                    break;
+                case Key.VolumeDown:
+                    if (VolumeLabel != null)
+                    {
+                        if (CurrentMusic.Volume <= 0.5)
+                        {
+                            CurrentMusic.Volume = 0;
+                        }
+                        else
+                        {
+                            CurrentMusic.Volume -= 0.05;
+                        }
+                        VolumeSlider.Value = CurrentMusic.Volume;
+                    }
+                    break;*/
+                default:
+                    break;
             }
         }
     }
@@ -272,6 +470,18 @@ namespace MusicPlayer
     {
         public string title { get; set; }
         public string path { get; set; }
+        private int seconds;
+        public string length
+        {
+            get
+            {
+                return seconds / 60 + " : " + seconds % 60;
+            }
+            set
+            {
+                seconds = Int32.Parse(value);
+            }
+        }
 
         public Music(string path)
         {

@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MusicPlayer"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" x:Class="MusicPlayer.MainWindow"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="800" Background="#FF1F0000">
+        Title="MainWindow" Height="500" Width="800" Background="#FF1F0000" KeyDown="Window_KeyDown">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition MinHeight="50" MaxHeight="70"/>
@@ -28,15 +29,76 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="60"/>
             </Grid.ColumnDefinitions>
-            <Label x:Name="SongTitleLabel" Content="Title" Margin="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontFamily="NanumSquareRound Light" FontSize="14" Grid.ColumnSpan="3"/>
-            <Label x:Name="SongProgressLabel" Content="00 : 00" Margin="0" Grid.Row="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontFamily="NanumGothic Light"/>
-            <Label x:Name="SongLength" Content="01 : 30" Grid.Column="2" Margin="0" Grid.Row="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontFamily="NanumGothic Light"/>
-            <Slider x:Name="SongProgressSlider" Grid.Column="1" Margin="5" Grid.Row="1" BorderBrush="Red" Value="30" Foreground="#FFBF1F1F"/>
+            <Label x:Name="SongTitleLabel" Content="Title" Margin="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontFamily="NanumSquareRound Light" FontSize="14" Grid.ColumnSpan="3" RenderTransformOrigin="0.5,0.5">
+                <Label.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleX="-10"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Label.RenderTransform>
+            </Label>
+            <Label x:Name="SongProgressLabel" Content="00 : 00" Margin="0" Grid.Row="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontFamily="NanumGothic Light" RenderTransformOrigin="0.5,0.5">
+                <Label.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleX="-10"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Label.RenderTransform>
+            </Label>
+            <Label x:Name="SongLength" Content="01 : 30" Grid.Column="2" Margin="0" Grid.Row="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontFamily="NanumGothic Light" RenderTransformOrigin="0.5,0.5">
+                <Label.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleX="-10"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Label.RenderTransform>
+            </Label>
+            <Slider x:Name="SongProgressSlider" Grid.Column="1" Margin="5" Grid.Row="1" BorderBrush="Red" Foreground="#FFBF1F1F" SmallChange="1"
+                   Thumb.DragStarted="SongProgressSlider_DragStarted" Thumb.DragCompleted="SongProgressSlider_DragCompleted" RenderTransformOrigin="0.5,0.5" >
+                <Slider.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleX="-10"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Slider.RenderTransform>
+            </Slider>
         </Grid>
-        <Grid x:Name="OptionsGrid" Margin="0" Grid.Row="1" Background="#FF3F0000">
-            <StackPanel Margin="0">
-                <mah:ToggleSwitch x:Name="ShuffleToggleButton" Header="ToggleSwitch" OnSwitchBrush="#CCFF3F3F" OffSwitchBrush="#CC3F0000" Foreground="#7FFF7F9F" ThumbIndicatorBrush="#FF7F0000" ThumbIndicatorDisabledBrush="#FFFFBFBF" FontFamily="NanumSquareRound Bold" Margin="5"/>
-            </StackPanel>
+        <Grid x:Name="OptionAndPlaylistGrid" Margin="0" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="3*"/>
+                <RowDefinition Height="2*"/>
+            </Grid.RowDefinitions>
+            <Grid x:Name="OptionsGrid" Margin="0" Background="#FF3F0000" Grid.Row="1">
+                <StackPanel Margin="0">
+                    <mah:ToggleSwitch x:Name="ShuffleToggleButton" Header="Shuffle" OnSwitchBrush="#CCFF3F3F" OffSwitchBrush="#CC3F0000" Foreground="#7FFF7F9F" ThumbIndicatorBrush="#FF7F0000" ThumbIndicatorDisabledBrush="#FFFFBFBF" FontFamily="NanumSquareRound Bold" Margin="10" FontSize="14" mah:ControlsHelper.HeaderFontSize="14" mah:ControlsHelper.HeaderMargin="0" ContentPadding="0,0,4,0" RenderTransformOrigin="0.5,0.5" HeaderFontFamily="NanumSquareRound Regular" ThumbIndicatorWidth="10">
+                        <mah:ToggleSwitch.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform AngleX="-10"/>
+                                <RotateTransform/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </mah:ToggleSwitch.RenderTransform>
+                    </mah:ToggleSwitch>
+                </StackPanel>
+            </Grid>
+            <Grid x:Name="PlaylistGrid" Margin="0">
+                <ListView x:Name="PlaylistView" Margin="5">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
         </Grid>
         <Grid x:Name="ControlGrid" Margin="0" Grid.Row="2" Background="#FF4F0000" Grid.Column="1">
             <Grid.ColumnDefinitions>
@@ -49,10 +111,46 @@
                 <ColumnDefinition Width="3*"/>
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="PrevButton" Content="&lt;&lt;" Grid.Column="3" Margin="5,10" Background="#FF3F1F1F" FontFamily="Consolas" FontSize="16" Foreground="White" BorderBrush="#FFBF3F3F" Click="PrevButton_Click"/>
-            <Button x:Name="PlayPauseButton" Content="|▶" Grid.Column="4" Margin="5,10" Background="#FF3F1F1F" FontFamily="Consolas" FontSize="16" Foreground="White" BorderBrush="#FFBF3F3F" Click="PlayPauseButton_Click"/>
-            <Button x:Name="StopButton" Content="■" Grid.Column="5" Margin="5,10" Background="#FF3F1F1F" FontFamily="Consolas" FontSize="16" Foreground="White" BorderBrush="#FFBF3F3F" Click="StopButton_Click"/>
-            <Button x:Name="NextButton" Content="&gt;&gt;" Grid.Column="6" Margin="5,10" Background="#FF3F1F1F" FontFamily="Consolas" FontSize="16" Foreground="White" BorderBrush="#FFBF3F3F" Click="NextButton_Click"/>
+            <Button x:Name="PrevButton" Content="&lt;&lt;" Grid.Column="3" Margin="5,10" Background="#FF3F1F1F" FontFamily="Consolas" FontSize="16" Foreground="White" BorderBrush="#FFBF3F3F" Click="PrevButton_Click" RenderTransformOrigin="0.5,0.5">
+                <Button.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleY="-5" AngleX="-10"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Button.RenderTransform>
+            </Button>
+            <Button x:Name="PlayPauseButton" Content="{iconPacks:Entypo Kind=ControllerPlay}" Grid.Column="4" Margin="5,10" Background="#FF3F1F1F" FontFamily="Consolas" FontSize="16" Foreground="White" BorderBrush="#FFBF3F3F" Click="PlayPauseButton_Click" RenderTransformOrigin="0.5,0.5" >
+                <Button.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleY="-5" AngleX="-10"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Button.RenderTransform>
+            </Button>
+            <Button x:Name="StopButton" Content="■" Grid.Column="5" Margin="5,10" Background="#FF3F1F1F" FontFamily="Consolas" FontSize="16" Foreground="White" BorderBrush="#FFBF3F3F" Click="StopButton_Click" RenderTransformOrigin="0.5,0.5">
+                <Button.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleY="-5" AngleX="-10"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Button.RenderTransform>
+            </Button>
+            <Button x:Name="NextButton" Content="&gt;&gt;" Grid.Column="6" Margin="5,10" Background="#FF3F1F1F" FontFamily="Consolas" FontSize="16" Foreground="White" BorderBrush="#FFBF3F3F" Click="NextButton_Click" RenderTransformOrigin="0.5,0.5">
+                <Button.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleY="-5" AngleX="-10"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Button.RenderTransform>
+            </Button>
             <Grid x:Name="VolumeControlGrid" Margin="0" Grid.Column="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*"/>
@@ -62,24 +160,70 @@
                     <RowDefinition Height="37*"/>
                     <RowDefinition Height="22*"/>
                 </Grid.RowDefinitions>
-                <ToggleButton x:Name="MuteTogglButton" Content="Mute" Margin="5" Grid.RowSpan="2" Padding="0" FontFamily="NanumSquare Light" HorizontalContentAlignment="Center" FontWeight="Normal" Foreground="#FFBFBFBF" Click="MuteTogglButton_Click"/>
-                <Slider Margin="10,10.705" Value="0.5" Maximum="1" VerticalAlignment="Center" Grid.ColumnSpan="2" Grid.Column="1"/>
-                <Label Content="50%" Margin="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.Row="1" Padding="0" FontFamily="NanumGothic Light" Grid.ColumnSpan="2" Grid.Column="1"/>
+                <ToggleButton x:Name="MuteTogglButton" Content="{iconPacks:Octicons Kind=Mute}" Margin="5" Grid.RowSpan="2" Padding="0" FontFamily="NanumSquare Light" HorizontalContentAlignment="Center" FontWeight="Normal" Foreground="#FFBFBFBF" Click="MuteTogglButton_Click" RenderTransformOrigin="0.5,0.5">
+                    <ToggleButton.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform AngleX="-10"/>
+                            <RotateTransform/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </ToggleButton.RenderTransform>
+                </ToggleButton>
+                <Slider x:Name="VolumeSlider" Margin="10,0,10,10" Value="0.5" Maximum="1" VerticalAlignment="Bottom" Grid.Column="1" ValueChanged="VolumeSlider_ValueChanged" SmallChange="0.01" LargeChange="0.01" TickFrequency="0.01" RenderTransformOrigin="0.5,0.5">
+                    <Slider.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform AngleX="-10"/>
+                            <RotateTransform/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Slider.RenderTransform>
+                </Slider>
+                <Label x:Name="VolumeLabel" Content="50%" Margin="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.Row="1" Padding="0" FontFamily="NanumGothic Light" Grid.ColumnSpan="2" Grid.Column="1" RenderTransformOrigin="0.5,0.5">
+                    <Label.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform AngleX="-10"/>
+                            <RotateTransform/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </Label.RenderTransform>
+                </Label>
             </Grid>
         </Grid>
         <Grid x:Name="CenterGrid" Grid.Column="1" Margin="0" Grid.Row="1" Background="#FF2F0000">
-            <ListView x:Name="SongListView" Margin="10" Background="#FF1F0000" Foreground="Blue" MouseDoubleClick="SongListView_MouseDoubleClick">
+            <ListView x:Name="SongListView" Margin="10" Background="#FF1F0000" Foreground="Blue" MouseDoubleClick="SongListView_MouseDoubleClick" FontStyle="Italic">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Title" Width="230" DisplayMemberBinding="{Binding title}"/>
-                        <GridViewColumn Header="Path" Width="300" DisplayMemberBinding="{Binding path}"/>
+                        <GridViewColumn Header="Path" Width="200" DisplayMemberBinding="{Binding path}"/>
+                        <GridViewColumn Header="Length" Width="auto" DisplayMemberBinding="{Binding Length}"/>
                     </GridView>
                 </ListView.View>
             </ListView>
         </Grid>
         <Grid Grid.Column="2" Margin="0" Grid.Row="1">
-            <Button x:Name="AddButton" Content="+" Margin="10,10,10,0" VerticalAlignment="Top" FontFamily="NanumSquare Bold" FontSize="30" Padding="0" Background="#7F2F2F2F" Click="AddButton_Click"/>
-            <Button x:Name="RemoveButton" Content="-" Margin="10,51.05,10,0" VerticalAlignment="Top" FontFamily="NanumSquare Bold" FontSize="30" Padding="0" Background="#7F2F2F2F" Click="RemoveButton_Click"/>
+            <Button x:Name="AddButton" Content="+" Margin="10,10,10,0" VerticalAlignment="Top" FontFamily="NanumSquare Bold" FontSize="30" Padding="0" Background="#7F2F2F2F" Click="AddButton_Click" RenderTransformOrigin="0.5,0.5">
+                <Button.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleX="-10"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Button.RenderTransform>
+            </Button>
+            <Button x:Name="RemoveButton" Content="-" Margin="10,51.05,10,0" VerticalAlignment="Top" FontFamily="NanumSquare Bold" FontSize="30" Padding="0" Background="#7F2F2F2F" Click="RemoveButton_Click" RenderTransformOrigin="0.5,0.5">
+                <Button.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform AngleX="-10"/>
+                        <RotateTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Button.RenderTransform>
+            </Button>
         </Grid>
     </Grid>
 </Window>
